@@ -38,8 +38,9 @@ public class UserService implements IUserService {
 
     @Override
     public UserResponse getById(Integer id) {
-        // TODO Auto-generated method stub
-        throw new UnsupportedOperationException("Unimplemented method 'getById'");
+        User user = this.find(id);
+
+        return this.userMapper.entityToResponse(user);
     }
 
     @Override
