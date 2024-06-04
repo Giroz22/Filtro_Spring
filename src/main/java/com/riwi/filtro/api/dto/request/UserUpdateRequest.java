@@ -24,6 +24,6 @@ public class UserUpdateRequest {
     @NotBlank(message = "La contraseña es requerida")
     @Size(min=8, max = 255, message = "La contraseña debe ser minimo de 8 y maximo 255 caracteres")
     private String password;
-    
+
     private Boolean active;
 }
