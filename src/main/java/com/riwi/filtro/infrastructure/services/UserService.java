@@ -2,6 +2,7 @@ package com.riwi.filtro.infrastructure.services;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 
 import com.riwi.filtro.api.dto.request.UserCreateRequest;
@@ -27,26 +28,39 @@ public class UserService implements IUserService {
 
     @Override
     public Page<UserResponse> getAll(int page, int size) {
-        // TODO Auto-generated method stub
-        throw new UnsupportedOperationException("Unimplemented method 'getAll'");
+        if (page<0) page=0;
+        PageRequest pagination = PageRequest.of(page, size);
+
+        return this.userRepository.findAll(pagination).map(
+            (user) -> this.userMapper.entityToResponse(user)
+        );
     }
 
     @Override
     public UserResponse getById(Integer id) {
-        // TODO Auto-generated method stub
-        throw new UnsupportedOperationException("Unimplemented method 'getById'");
+        User user = this.find(id);
+
+        return this.userMapper.entityToResponse(user);
     }
 
     @Override
     public UserResponse create(UserCreateRequest request) {
-        // TODO Auto-generated method stub
-        throw new UnsupportedOperationException("Unimplemented method 'create'");
+        User user = this.userMapper.requestToEntity(request);
+
+        User newUser = this.userRepository.save(user);
+
+        return this.userMapper.entityToResponse(newUser);
     }
 
     @Override
     public UserResponse update(Integer id, UserUpdateRequest request) {
-        // TODO Auto-generated method stub
-        throw new UnsupportedOperationException("Unimplemented method 'update'");
+        User userFind = this.find(id);
+
+        User userUpdate = this.userMapper.requestToEntity(request, userFind);
+
+        User userUpdated = this.userRepository.save(userUpdate);
+
+        return this.userMapper.entityToResponse(userUpdated);
     }
 
     @Override
