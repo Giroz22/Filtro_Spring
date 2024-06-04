@@ -45,8 +45,11 @@ public class UserService implements IUserService {
 
     @Override
     public UserResponse create(UserCreateRequest request) {
-        // TODO Auto-generated method stub
-        throw new UnsupportedOperationException("Unimplemented method 'create'");
+        User user = this.userMapper.requestToEntity(request);
+
+        User newUser = this.userRepository.save(user);
+
+        return this.userMapper.entityToResponse(newUser);
     }
 
     @Override
