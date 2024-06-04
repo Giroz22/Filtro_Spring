@@ -3,6 +3,7 @@ package com.riwi.filtro.infrastructure.helpers.mappers;
 import org.springframework.stereotype.Component;
 
 import com.riwi.filtro.api.dto.request.UserCreateRequest;
+import com.riwi.filtro.api.dto.request.UserUpdateRequest;
 import com.riwi.filtro.api.dto.response.UserResponse;
 import com.riwi.filtro.domain.entitties.User;
 
@@ -20,7 +21,7 @@ public class UserMapper implements IMapperBase<User, UserCreateRequest, UserResp
         return user;
     }
 
-    public User requestToEntity(UserCreateRequest request, User entity) {
+    public User requestToEntity(UserUpdateRequest request, User entity) {
         return Mapper.sourceToTarget(request, entity);
     }
 
