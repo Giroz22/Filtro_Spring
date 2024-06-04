@@ -2,6 +2,8 @@ package com.riwi.filtro.domain.entitties;
 
 import java.util.List;
 
+import com.riwi.filtro.util.enums.TypeQuestion;
+
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -34,7 +36,7 @@ public class Question {
     private String text;
 
     @Column(length = 50)
-    private String type;
+    private TypeQuestion type;
     
     private Boolean active;
 

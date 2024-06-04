@@ -1,24 +1,52 @@
 package com.riwi.filtro.infrastructure.helpers.mappers;
 
+import java.util.ArrayList;
+
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import com.riwi.filtro.api.dto.request.QuestionCreateRequest;
 import com.riwi.filtro.api.dto.response.QuestionResponse;
+import com.riwi.filtro.domain.entitties.OptionQuestion;
 import com.riwi.filtro.domain.entitties.Question;
+import com.riwi.filtro.util.enums.TypeQuestion;
+
+import lombok.AllArgsConstructor;
 
 @Component
+@AllArgsConstructor
 public class QuestionMapper implements IMapperBase<Question, QuestionCreateRequest, QuestionResponse>{
+
+    @Autowired
+    private final OptionQuestionMapper optionQuestionMapper;
 
     @Override
     public Question requestToEntity(QuestionCreateRequest request) {
-        // TODO Auto-generated method stub
-        throw new UnsupportedOperationException("Unimplemented method 'requestToEntity'");
+        Question question = Mapper.sourceToTarget(request, new Question());
+
+        question.setActive(true);
+
+        //Si el tipo de pregunta es cerrada le agregamos un array opciones vacio
+        if (request.getType() == TypeQuestion.CLOSED) 
+            question.setOptionquestions(new ArrayList<OptionQuestion>());
+
+        return question;
     }
 
     @Override
     public QuestionResponse entityToResponse(Question entity) {
-        // TODO Auto-generated method stub
-        throw new UnsupportedOperationException("Unimplemented method 'entityToResponse'");
+        QuestionResponse response = Mapper.sourceToTarget(entity, new QuestionResponse());
+
+        //Si la pregunta es de tipo cerrada, Convertimos la lista de opciones en una lista de respuestas
+        if (entity.getType() == TypeQuestion.CLOSED) {
+            response.setOptions(
+                entity.getOptionquestions().stream().map(
+                    (option) -> this.optionQuestionMapper.entityToResponse(option)
+                ).toList()
+            );
+        }
+    
+        return response;
     }
     
 }
