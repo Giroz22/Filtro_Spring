@@ -1,6 +1,5 @@
 package com.riwi.filtro.infrastructure.services;
 
-import java.util.ArrayList;
 import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -8,21 +7,23 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 
+import com.riwi.filtro.api.dto.request.QuestionAndOptionsUpdateRequest;
 import com.riwi.filtro.api.dto.request.QuestionCreateRequest;
 import com.riwi.filtro.api.dto.request.QuestionUpdateRequest;
-import com.riwi.filtro.api.dto.response.OptionQuestionResponse;
 import com.riwi.filtro.api.dto.response.QuestionResponse;
 import com.riwi.filtro.domain.entitties.OptionQuestion;
 import com.riwi.filtro.domain.entitties.Question;
 import com.riwi.filtro.domain.repositories.OptionQuestionRepository;
 import com.riwi.filtro.domain.repositories.QuestionRepository;
-
-import lombok.AllArgsConstructor;
 import com.riwi.filtro.infrastructure.abstract_services.IQuestionService;
+import com.riwi.filtro.infrastructure.helpers.mappers.Mapper;
 import com.riwi.filtro.infrastructure.helpers.mappers.OptionQuestionMapper;
 import com.riwi.filtro.infrastructure.helpers.mappers.QuestionMapper;
 import com.riwi.filtro.util.enums.TypeQuestion;
 import com.riwi.filtro.util.exceptions.IdNotFoundException;
+
+import jakarta.transaction.Transactional;
+import lombok.AllArgsConstructor;
 
 @Service
 @AllArgsConstructor
@@ -57,6 +58,7 @@ public class QuestionService implements IQuestionService{
     }
 
     @Override
+    @Transactional
     public QuestionResponse create(QuestionCreateRequest request) {
         Question question = this.questionMapper.requestToEntity(request);
 
@@ -82,20 +84,69 @@ public class QuestionService implements IQuestionService{
         return this.questionMapper.entityToResponse(newQuestion);
     }
 
+    private Question modificate(Integer id, QuestionUpdateRequest request){
+        Question question = this.find(id);
+
+        Question questionUpdate = this.questionMapper.requestToEntity(request, question);
+
+        Question questionUpdated = this.questionRepository.save(questionUpdate);
+
+        return questionUpdated;
+    }
+
     @Override
+    @Transactional
     public QuestionResponse update(Integer id, QuestionUpdateRequest request) {
-        // TODO Auto-generated method stub
-        throw new UnsupportedOperationException("Unimplemented method 'update'");
+
+        return this.questionMapper.entityToResponse(modificate(id, request));
+    }
+
+    @Transactional
+    public QuestionResponse update(Integer id, QuestionAndOptionsUpdateRequest request) {
+
+        Question questionUpdated = this.modificate(id, Mapper.sourceToTarget(request, new QuestionUpdateRequest()));
+
+        //Si el tipo de pregunta en CLOSED se agregar las opciones
+        if (questionUpdated.getType() == TypeQuestion.CLOSED) {   
+
+            //Almacenamos todas las opciones guardadas en la db 
+            List<OptionQuestion> optionsSaved = request.getOptionquestions().stream().map(
+                (optionsUpdateRequest) -> {
+
+                    //Buscamos si existe la opcion
+                    OptionQuestion option = this.findOption(optionsUpdateRequest.getId());
+
+                    //Convertimos el request a una entidad
+                    OptionQuestion optionUpdate = this.optionQuestionMapper.requestToEntity(optionsUpdateRequest, option);
+
+                    //Actualizamos la opcion
+                    OptionQuestion optionUpdated = this.optionQuestionRepository.save(optionUpdate);
+                    
+                    return optionUpdated;
+                }
+            ).toList();
+
+            questionUpdated.setOptionquestions(optionsSaved);
+
+        }
+
+        return this.questionMapper.entityToResponse(questionUpdated);
     }
 
     @Override
     public void delete(Integer id) {
-        // TODO Auto-generated method stub
-        throw new UnsupportedOperationException("Unimplemented method 'delete'");
+        
+        Question question = this.find(id);
+
+        this.questionRepository.delete(question);
     }
 
     private Question find(Integer id){
         return this.questionRepository.findById(id).orElseThrow(() -> new IdNotFoundException("Question"));
+    }
+
+    private OptionQuestion findOption(Integer id){
+        return this.optionQuestionRepository.findById(id).orElseThrow(() -> new IdNotFoundException("OptionQuestion"));
     }
     
 }

@@ -1,7 +1,5 @@
 package com.riwi.filtro.api.dto.request;
 
-import java.util.List;
-
 import com.riwi.filtro.util.enums.TypeQuestion;
 
 import jakarta.validation.constraints.NotBlank;
@@ -14,14 +12,11 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @Data
 @Builder
-public class QuestionUpdateRequest {
+public class QuestionUpdateRequest{
     @NotBlank(message = "El texto es requerido")
     private String text;
 
-    @NotBlank(message = "El tipo de question es requerido")
     private TypeQuestion type;
     
     private Boolean active;
-
-    private List<OptionQuestionCreateRequest> optionquestions;
 }

@@ -5,7 +5,9 @@ import java.util.ArrayList;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
+import com.riwi.filtro.api.dto.request.QuestionAndOptionsUpdateRequest;
 import com.riwi.filtro.api.dto.request.QuestionCreateRequest;
+import com.riwi.filtro.api.dto.request.QuestionUpdateRequest;
 import com.riwi.filtro.api.dto.response.QuestionResponse;
 import com.riwi.filtro.domain.entitties.OptionQuestion;
 import com.riwi.filtro.domain.entitties.Question;
@@ -33,9 +35,29 @@ public class QuestionMapper implements IMapperBase<Question, QuestionCreateReque
         return question;
     }
 
+    public Question requestToEntity(QuestionUpdateRequest request, Question entity) {
+        return Mapper.sourceToTarget(request, entity);
+    }
+
+    public Question requestToEntity(QuestionAndOptionsUpdateRequest request, Question entity) {
+        Question question = Mapper.sourceToTarget(request, entity);
+
+        question.setOptionquestions(
+            request.getOptionquestions().stream().map(
+                (optionRequest) -> this.optionQuestionMapper.requestToEntity(optionRequest, new OptionQuestion())
+            ).toList()
+        );
+
+        return question;
+    }
+
     @Override
     public QuestionResponse entityToResponse(Question entity) {
-        QuestionResponse response = Mapper.sourceToTarget(entity, new QuestionResponse());
+        QuestionResponse response = Mapper.sourceToTarget(entity, 
+            QuestionResponse.builder()
+            .options(new ArrayList<>())
+            .build()
+        );
 
         //Si la pregunta es de tipo cerrada, Convertimos la lista de opciones en una lista de respuestas
         if (entity.getType() == TypeQuestion.CLOSED) {
